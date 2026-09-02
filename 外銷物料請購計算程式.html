@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>外銷鋼筋物料請購計算程式</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1B1E23;
+    --panel: #23272E;
+    --panel-2: #2B3038;
+    --line: #3A404A;
+    --text: #ECEEF0;
+    --text-dim: #9AA3AF;
+    --text-faint: #6B7280;
+    --accent: #D9642B;
+    --accent-dim: #8A4420;
+    --steel: #5B8DB8;
+    --steel-dim: #2E4A5F;
+    --ok: #7FA65C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,sans-serif;
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:1080px;margin:0 auto;}
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom:2px solid var(--accent);
+    padding-bottom:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:32px;
+    letter-spacing:0.5px;
+    margin:0;
+    color:var(--text);
+  }
+  .masthead .sub{font-size:13px;color:var(--text-dim);}
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:24px;}
+  @media (max-width:780px){.grid{grid-template-columns:1fr;}}
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:20px;
+  }
+  .panel h2{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:0 0 16px;
+  }
+
+  .spec-block{
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:14px;
+    margin-bottom:14px;
+    transition:border-color .15s, background .15s;
+  }
+  .spec-block.on{border-color:var(--accent);background:rgba(217,100,43,0.06);}
+  .spec-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    cursor:pointer;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .spec-head .label{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .spec-head .num{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:24px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .spec-head .unit{font-size:12px;color:var(--text-dim);}
+  .switch{
+    width:38px;height:22px;
+    border-radius:11px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    position:relative;
+    flex-shrink:0;
+  }
+  .switch .knob{
+    position:absolute;
+    top:2px;left:2px;
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--text-dim);
+    transition:left .15s, background .15s;
+  }
+  .spec-block.on .switch{border-color:var(--accent);background:var(--accent-dim);}
+  .spec-block.on .switch .knob{left:18px;background:#fff;}
+
+  .ton-area{
+    margin-top:14px;
+    opacity:1;
+    transition:opacity .15s;
+  }
+  .spec-block:not(.on) .ton-area{opacity:0.35;pointer-events:none;}
+  .field-label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;}
+  .ton-input-row{display:flex;align-items:stretch;gap:6px;margin-bottom:8px;}
+  .step-btn{
+    width:34px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text);
+    font-size:17px;
+    cursor:pointer;
+    line-height:1;
+  }
+  .step-btn:hover{border-color:var(--steel);}
+  .ton-input{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text);
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:19px;
+    font-weight:600;
+    text-align:center;
+    padding:6px 4px;
+    width:100%;
+  }
+  .ton-input:focus{outline:none;border-color:var(--steel);}
+  .batch-note{font-size:11px;color:var(--text-faint);}
+  .batch-note b{color:var(--text-dim);font-weight:600;}
+
+  .base-note{
+    font-size:11px;
+    color:var(--text-faint);
+    line-height:1.5;
+    margin-top:4px;
+  }
+
+  .result-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .result-head .title{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:20px;
+    font-weight:700;
+  }
+  .result-head .title .n{color:var(--accent);}
+  .action-btns{display:flex;gap:8px;}
+  .action-btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    padding:7px 12px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .action-btn:hover{border-color:var(--steel);}
+  .print-only{display:none;}
+  .empty-msg{
+    padding:40px 10px;
+    text-align:center;
+    color:var(--text-faint);
+    font-size:13px;
+  }
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{
+    text-align:right;
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:0 8px 8px;
+    border-bottom:1px solid var(--line);
+  }
+  thead th.left{text-align:left;}
+  tbody td{
+    padding:9px 8px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    text-align:right;
+  }
+  tbody td.left{text-align:left;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--panel-2);}
+  .item-name{font-weight:500;color:var(--text);}
+  .item-spec{font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .part-no{font-family:'Inter',monospace;font-size:11px;color:var(--text-dim);}
+  .sub-qty{font-size:13px;color:var(--text-dim);}
+  .sub-qty .na{color:var(--text-faint);}
+  .total-qty{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    color:var(--accent);
+    white-space:nowrap;
+  }
+  .total-qty .u{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    font-weight:400;
+    color:var(--text-dim);
+    margin-left:3px;
+  }
+  .stock-cell{text-align:right;}
+  .stock-input{
+    width:72px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    text-align:right;
+    padding:5px 6px;
+  }
+  .stock-input:focus{outline:none;border-color:var(--steel);}
+  .buy-qty-cell .buy-qty{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:20px;
+    font-weight:700;
+    color:var(--ok);
+  }
+  .rule-note{font-size:11px;color:var(--text-faint);text-align:left;}
+  .rule-tag{
+    display:inline-block;
+    font-size:10px;
+    padding:1px 6px;
+    border-radius:3px;
+    margin-right:6px;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+  }
+  .rule-tag.min{border-color:var(--steel-dim);color:var(--steel);}
+  .rule-tag.mult{border-color:var(--accent-dim);color:var(--accent);}
+  footer{
+    margin-top:20px;
+    font-size:11px;
+    color:var(--text-faint);
+    line-height:1.6;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+
+  @media print{
+    body{background:#fff;color:#000;padding:0;}
+    .masthead{border-bottom-color:#000;}
+    h1{color:#000;}
+    .masthead .sub{color:#333;}
+    .grid{display:block;}
+    .grid > .panel:first-child{display:none;}
+    .panel{border:none;background:#fff;padding:0;}
+    .action-btns{display:none;}
+    .print-only{display:block;font-size:12px;color:#333;margin-bottom:10px;}
+    table{font-size:11px;}
+    thead th{color:#000;border-bottom:1px solid #000;}
+    tbody td{border-bottom:1px solid #999;color:#000;}
+    .item-name{color:#000;}
+    .item-spec, .part-no, .rule-note, .sub-qty{color:#333;}
+    .total-qty, .buy-qty{color:#000;}
+    .stock-input{border:1px solid #999;background:#fff;color:#000;}
+    .rule-tag{border-color:#999;color:#333;}
+    footer{color:#555;border-top-color:#999;}
+    @page{margin:14mm;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>外銷鋼筋物料請購計算程式</h1>
+    <div class="sub">400W 鋼筋出口包裝物料 &middot; 基準批量 25T</div>
+  </div>
+
+  <div class="grid">
+
+    <div class="panel">
+      <h2>選擇規格與噸數</h2>
+
+      <div class="spec-block on" id="block10" data-diam="10">
+        <div class="spec-head" data-toggle="10">
+          <div class="label">
+            <span class="num">10</span><span class="unit">MM</span>
+          </div>
+          <div class="switch"><div class="knob"></div></div>
+        </div>
+        <div class="ton-area">
+          <label class="field-label">預定出貨噸數 (T)</label>
+          <div class="ton-input-row">
+            <button class="step-btn" data-step="-25" data-diam="10">&minus;</button>
+            <input type="number" class="ton-input" id="ton10" value="25" min="0" step="1">
+            <button class="step-btn" data-step="25" data-diam="10">&plus;</button>
+          </div>
+          <div class="batch-note">換算 <span id="batch10">1.00</span> 批 (&times;25T)</div>
+        </div>
+      </div>
+
+      <div class="spec-block" id="block15" data-diam="15">
+        <div class="spec-head" data-toggle="15">
+          <div class="label">
+            <span class="num">15</span><span class="unit">MM</span>
+          </div>
+          <div class="switch"><div class="knob"></div></div>
+        </div>
+        <div class="ton-area">
+          <label class="field-label">預定出貨噸數 (T)</label>
+          <div class="ton-input-row">
+            <button class="step-btn" data-step="-25" data-diam="15">&minus;</button>
+            <input type="number" class="ton-input" id="ton15" value="25" min="0" step="1">
+            <button class="step-btn" data-step="25" data-diam="15">&plus;</button>
+          </div>
+          <div class="batch-note">換算 <span id="batch15">1.00</span> 批 (&times;25T)</div>
+        </div>
+      </div>
+
+      <div class="base-note">兩種規格可同時開啟，各自輸入噸數；下方「合計請購量」會將兩規格需求加總後，再依採購規則（進位/最低量/倍數）計算最終數量。基準值：每 25T 為一計算單位。</div>
+    </div>
+
+    <div class="panel">
+      <div class="result-head">
+        <div class="title">合計請購清單 <span class="n" id="specSummary"></span></div>
+        <div class="action-btns">
+          <button class="action-btn" id="printBtn">&#128424; 列印 / 存PDF</button>
+          <button class="action-btn" id="csvBtn">&#8681; 下載Excel</button>
+        </div>
+      </div>
+
+      <div id="printMeta" class="print-only"></div>
+
+      <div id="resultWrap"></div>
+
+      <footer>
+        計算方式：各規格需求量 = 每 25T 基準用量 &times; (該規格噸數 &divide; 25)，將已開啟規格的需求量加總後，再依物料規則進位得出合計請購量；<b style="color:var(--ok)">需購買量 = (合計請購量 &minus; 庫存量) 再依該物料採購規則進位</b>，若扣除庫存後為0或負數則需購買量為0。<span class="rule-tag min">最低採購</span> 表示未達下限時以下限量計；<span class="rule-tag mult">整數倍</span> 表示須以指定倍數採購。未標示者為整數進位。關閉的規格不計入合計。庫存量請於「庫存量(手動)」欄位輸入，僅供本次瀏覽計算使用，不會保存。
+      </footer>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var ITEMS = [
+  ["棧板",                 "U51180255001", "美式棧板，附角材",              17,   17,  "mult52",  "PC", "1個棧板配5根角材（對應角材用量）"],
+  ["角材(10MM用)",         "10103042",     "83.6*9*3.8CM, 10MM",            85,   null,"round",   "PC", "數量對應棧板，以5的倍數分配；雙規格同時開啟且分配不均時，需求較多的一方多分1組(5根)", true],
+  ["角材(15MM用)",         "10103043",     "106.7*9*3.8CM, 15MM",           null, 85,  "round",   "PC", "數量對應棧板，以5的倍數分配；雙規格同時開啟且分配不均時，需求較多的一方多分1組(5根)", true],
+  ["束帶",                 "10258148",     "30.5CM*1.29CM 尼龍，100條=1包，28包=1箱", 2570, 3213,"mult2800","PC"],
+  ["PE布(塑膠布)",         "16086033",     "寬2600MM*0.06MMT",              0.66, 0.66,"min4",    "PC"],
+  ["塑鋼帶",               "U51177191300", "19*1.0MM,743M/捲",              0.33, 0.33,"min4",    "PC"],
+  ["乾燥包(15G)",          "12630001",     "15克",                          143,  143, "mult200", "PC"],
+  ["乾燥包(1000G)",        "12630003",     "1000克(包)",                    8,    8,   "round",   "PC"],
+  ["二色強銅上光貼紙(10MM)","10330003",    "10MM 40*50MM",                  11220,null,"round",   "PC"],
+  ["二色強銅上光貼紙(15MM)","330004",      "15MM 40*70MM",                  null, 5610,"round",   "PC"],
+  ["二色強銅上光貼紙(2311)","10330001",    "80*190MM",                      38,   null,"round",   "PC"],
+  ["二色強銅上光貼紙(2319)","10330002",    "80*190MM",                      null, 38,  "round",   "PC"],
+  ["吊卡(10MM)",           "34300125",     "66*47MM",                       435,  null,"round",   "PC"],
+  ["吊卡(15MM)",           "34300126",     "66*47MM",                       null, 540, "round",   "PC"],
+  ["紙板3PB",              "30121013",     "1700*1300",                     38,   38,  "round",   "PC"],
+  ["自動噴漆(銀色)",       "12105038",     "124#",                          5,    5,   "mult6",   "CA"],
+  ["自動噴漆(透明色)",     "12105039",     "128#",                          5,    5,   "mult6",   "CA"],
+  ["透明膠帶",             "16086042",     "2\"X45M",                       17,   17,  "mult6",   "PC"]
+];
+var BASE_TON = 25;
+var state = {
+  on10: true, on15: false,
+  ton10: 25, ton15: 25,
+  stock: {}
+};
+var lastRowsData = [];
+
+function applyRule(raw, rule){
+  if(rule === "round") return Math.ceil(raw);
+  if(rule === "min4") return raw <= 0 ? 0 : Math.max(Math.ceil(raw), 4);
+  if(rule === "mult6") return raw <= 0 ? 0 : Math.ceil(Math.max(raw,6)/6)*6;
+  if(rule === "mult200") return raw <= 0 ? 0 : Math.ceil(raw/200)*200;
+  if(rule === "mult28") return raw <= 0 ? 0 : Math.max(Math.ceil(raw/28)*28, 28);
+  if(rule === "mult2800") return raw <= 0 ? 0 : Math.ceil(raw/2800)*2800;
+  if(rule === "mult52") return raw <= 0 ? 0 : Math.ceil(raw/52)*52;
+  return Math.ceil(raw);
+}
+
+function ruleTag(rule){
+  if(rule === "min4") return '<span class="rule-tag min">最低採購</span>每次最低 4 捲';
+  if(rule === "mult6") return '<span class="rule-tag mult">整數倍</span>需以 6 的倍數採購';
+  if(rule === "mult200") return '<span class="rule-tag mult">整數倍</span>每次購買需為 200 的倍數';
+  if(rule === "mult28") return '<span class="rule-tag mult">整數倍</span>需以 28 包為單位採購(不足28包以28包計)';
+  if(rule === "mult2800") return '<span class="rule-tag mult">整數倍</span>以包為單位採購(100條為1包，28包為1箱)，即2800pc之倍數';
+  if(rule === "mult52") return '<span class="rule-tag mult">整數倍</span>每次購買需為 52 的倍數';
+  return '整數進位';
+}
+
+function fmtRound(n){ return Math.ceil(n).toLocaleString(); }
+
+function render(){
+  document.getElementById("block10").classList.toggle("on", state.on10);
+  document.getElementById("block15").classList.toggle("on", state.on15);
+  document.getElementById("batch10").textContent = (state.ton10 / BASE_TON).toFixed(2);
+  document.getElementById("batch15").textContent = (state.ton15 / BASE_TON).toFixed(2);
+
+  var summaryParts = [];
+  if(state.on10) summaryParts.push("10MM " + state.ton10 + "T");
+  if(state.on15) summaryParts.push("15MM " + state.ton15 + "T");
+  document.getElementById("specSummary").textContent = summaryParts.length ? "(" + summaryParts.join(" + ") + ")" : "";
+
+  var today = new Date();
+  var dateStr = today.getFullYear() + "/" + String(today.getMonth()+1).padStart(2,"0") + "/" + String(today.getDate()).padStart(2,"0");
+  document.getElementById("printMeta").innerHTML =
+    "<b>外銷鋼筋物料請購單</b>　規格條件：" + (summaryParts.join("　+　") || "未選擇") + "　製表日期：" + dateStr;
+
+  var wrap = document.getElementById("resultWrap");
+
+  if(!state.on10 && !state.on15){
+    wrap.innerHTML = '<div class="empty-msg">請至少開啟一種規格 (10MM 或 15MM) 以計算請購量</div>';
+    return;
+  }
+
+  var rowsHtml = "";
+  lastRowsData = [];
+  var palletFinalQty = 0;
+  var palletRaw10 = 0;
+  var palletRaw15 = 0;
+  var angleSplit10 = 0;
+  var angleSplit15 = 0;
+  ITEMS.forEach(function(it){
+    var name = it[0], partNo = it[1], spec = it[2], base10 = it[3], base15 = it[4], rule = it[5], unit = it[6], extraNote = it[7] || "", linkPallet = it[8] || false;
+
+    var need10 = (state.on10 && base10 !== null) ? base10 * (state.ton10 / BASE_TON) : null;
+    var need15 = (state.on15 && base15 !== null) ? base15 * (state.ton15 / BASE_TON) : null;
+
+    var rawTotal = (need10 || 0) + (need15 || 0);
+    var showsAny = (need10 !== null) || (need15 !== null);
+
+    var sub10 = base10 === null ? '<span class="na">&mdash;</span>' : (need10 === null ? '<span class="na">未選</span>' : fmtRound(need10));
+    var sub15 = base15 === null ? '<span class="na">&mdash;</span>' : (need15 === null ? '<span class="na">未選</span>' : fmtRound(need15));
+
+    var totalCell;
+    var finalQty = 0;
+    if(!showsAny){
+      totalCell = '<span class="na">&mdash;</span>';
+    } else if(linkPallet){
+      if(state.on10 && state.on15){
+        finalQty = (base10 !== null) ? angleSplit10 : angleSplit15;
+      } else {
+        finalQty = Math.ceil(palletFinalQty * 5);
+      }
+      totalCell = finalQty.toLocaleString() + '<span class="u">' + unit + '</span>';
+    } else {
+      finalQty = applyRule(rawTotal, rule);
+      totalCell = finalQty.toLocaleString() + '<span class="u">' + unit + '</span>';
+    }
+    if(name === "棧板"){
+      palletFinalQty = finalQty;
+      palletRaw10 = need10 || 0;
+      palletRaw15 = need15 || 0;
+
+      var N = palletFinalQty;
+      var rawTotal2 = palletRaw10 + palletRaw15;
+      var idealBlocks10, idealBlocks15;
+      if(rawTotal2 <= 0){
+        idealBlocks10 = N / 2;
+        idealBlocks15 = N / 2;
+      } else {
+        idealBlocks10 = N * (palletRaw10 / rawTotal2);
+        idealBlocks15 = N - idealBlocks10;
+      }
+      var floorBlocks10 = Math.floor(idealBlocks10 + 1e-9);
+      var floorBlocks15 = Math.floor(idealBlocks15 + 1e-9);
+      var remainderBlocks = N - floorBlocks10 - floorBlocks15;
+      if(remainderBlocks > 0){
+        if(palletRaw10 >= palletRaw15){ floorBlocks10 += remainderBlocks; }
+        else { floorBlocks15 += remainderBlocks; }
+      }
+      angleSplit10 = floorBlocks10 * 5;
+      angleSplit15 = floorBlocks15 * 5;
+    }
+
+    var stockVal = state.stock[name] !== undefined ? state.stock[name] : 0;
+    var buyCell, stockCell;
+    if(!showsAny){
+      stockCell = '<span class="na">&mdash;</span>';
+      buyCell = '<span class="na">&mdash;</span>';
+    } else {
+      var shortfall = Math.max(finalQty - stockVal, 0);
+      var buyQty = linkPallet ? Math.ceil(shortfall) : applyRule(shortfall, rule);
+      stockCell = '<input type="number" class="stock-input" data-name="' + name + '" min="0" value="' + stockVal + '">';
+      buyCell = '<span class="buy-qty">' + buyQty.toLocaleString() + '</span><span class="u">' + unit + '</span>';
+    }
+
+    rowsHtml += '<tr data-name="' + name + '" data-final="' + finalQty + '" data-unit="' + unit + '" data-rule="' + rule + '" data-linkpallet="' + (linkPallet ? "1" : "0") + '">' +
+      '<td class="left"><div class="item-name">' + name + '</div><div class="item-spec">' + spec + '</div><div class="part-no">' + partNo + '</div></td>' +
+      '<td class="sub-qty">' + sub10 + '</td>' +
+      '<td class="sub-qty">' + sub15 + '</td>' +
+      '<td class="total-qty">' + totalCell + '</td>' +
+      '<td class="stock-cell">' + stockCell + '</td>' +
+      '<td class="total-qty buy-qty-cell">' + buyCell + '</td>' +
+      '<td class="rule-note">' + (showsAny ? ((linkPallet ? '' : ruleTag(rule)) + (extraNote ? (linkPallet ? '' : '<br>') + extraNote : '')) : '本規格不適用') + '</td>' +
+      '</tr>';
+
+    if(showsAny){
+      lastRowsData.push({
+        name: name, partNo: partNo, spec: spec, unit: unit,
+        need10: need10, need15: need15,
+        total: finalQty,
+        stock: stockVal,
+        buy: (linkPallet ? Math.ceil(Math.max(finalQty - stockVal, 0)) : applyRule(Math.max(finalQty - stockVal, 0), rule))
+      });
+    }
+  });
+
+  wrap.innerHTML =
+    '<table>' +
+    '<thead><tr>' +
+      '<th class="left">物料 / 規格 / 新料號</th>' +
+      '<th>10MM 需求</th>' +
+      '<th>15MM 需求</th>' +
+      '<th>合計請購量</th>' +
+      '<th>庫存量(手動)</th>' +
+      '<th>需購買量</th>' +
+      '<th class="left">採購規則</th>' +
+    '</tr></thead>' +
+    '<tbody>' + rowsHtml + '</tbody>' +
+    '</table>';
+
+  wrap.querySelectorAll(".stock-input").forEach(function(inp){
+    inp.addEventListener("input", function(){
+      var name = inp.getAttribute("data-name");
+      var v = parseFloat(inp.value);
+      if(isNaN(v) || v < 0) v = 0;
+      state.stock[name] = v;
+      var tr = inp.closest("tr");
+      var finalQty = parseFloat(tr.getAttribute("data-final")) || 0;
+      var unit = tr.getAttribute("data-unit") || "";
+      var rule = tr.getAttribute("data-rule") || "round";
+      var linkPallet = tr.getAttribute("data-linkpallet") === "1";
+      var shortfall = Math.max(finalQty - v, 0);
+      var buyQty = linkPallet ? Math.ceil(shortfall) : applyRule(shortfall, rule);
+      var buyCellEl = tr.querySelector(".buy-qty-cell");
+      buyCellEl.innerHTML = '<span class="buy-qty">' + buyQty.toLocaleString() + '</span><span class="u">' + unit + '</span>';
+    });
+  });
+}
+
+document.querySelectorAll("[data-toggle]").forEach(function(el){
+  el.addEventListener("click", function(){
+    var d = el.getAttribute("data-toggle");
+    if(d === "10") state.on10 = !state.on10;
+    if(d === "15") state.on15 = !state.on15;
+    render();
+  });
+});
+
+document.getElementById("ton10").addEventListener("input", function(e){
+  var v = parseFloat(e.target.value);
+  state.ton10 = isNaN(v) || v < 0 ? 0 : v;
+  render();
+});
+document.getElementById("ton15").addEventListener("input", function(e){
+  var v = parseFloat(e.target.value);
+  state.ton15 = isNaN(v) || v < 0 ? 0 : v;
+  render();
+});
+
+document.querySelectorAll(".step-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var diam = btn.getAttribute("data-diam");
+    var step = parseFloat(btn.getAttribute("data-step"));
+    if(diam === "10"){
+      state.ton10 = Math.max(0, state.ton10 + step);
+      document.getElementById("ton10").value = state.ton10;
+    } else {
+      state.ton15 = Math.max(0, state.ton15 + step);
+      document.getElementById("ton15").value = state.ton15;
+    }
+    render();
+  });
+});
+
+document.getElementById("printBtn").addEventListener("click", function(){
+  window.print();
+});
+
+document.getElementById("csvBtn").addEventListener("click", function(){
+  var headerLabels = ["物料","新料號","規格","單位","10MM需求","15MM需求","合計請購量","庫存量","需購買量"];
+  var headerHtml = "<tr>" + headerLabels.map(function(h){
+    return '<th style="background:#BDD7EE;border:1px solid #000000;font-weight:bold;padding:4px 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt;text-align:left;">' + h + '</th>';
+  }).join("") + "</tr>";
+
+  var bodyHtml = lastRowsData.map(function(row){
+    var need10Txt = row.need10 !== null ? Math.round(row.need10) : "";
+    var need15Txt = row.need15 !== null ? Math.round(row.need15) : "";
+    var tdBase = 'border:1px solid #000000;padding:3px 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+    return "<tr>" +
+      '<td style="' + tdBase + 'color:#1F4E78;font-weight:bold;">' + row.name + "</td>" +
+      '<td style="' + tdBase + 'color:#1F4E78;">' + row.partNo + "</td>" +
+      '<td style="' + tdBase + '">' + row.spec + "</td>" +
+      '<td style="' + tdBase + 'text-align:center;">' + row.unit + "</td>" +
+      '<td style="' + tdBase + 'text-align:right;mso-number-format:\\@;">' + need10Txt + "</td>" +
+      '<td style="' + tdBase + 'text-align:right;mso-number-format:\\@;">' + need15Txt + "</td>" +
+      '<td style="' + tdBase + 'text-align:right;mso-number-format:\\@;">' + row.total + "</td>" +
+      '<td style="' + tdBase + 'text-align:right;mso-number-format:\\@;">' + row.stock + "</td>" +
+      '<td style="' + tdBase + 'text-align:right;mso-number-format:\\@;">' + row.buy + "</td>" +
+      "</tr>";
+  }).join("");
+
+  var tableHtml = '<table border="1" cellspacing="0" style="border-collapse:collapse;">' + headerHtml + bodyHtml + '</table>';
+  var fullHtml =
+    '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">' +
+    '<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>' +
+    '<x:Name>請購單</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>' +
+    '<body>' + tableHtml + '</body></html>';
+
+  var blob = new Blob([fullHtml], {type: "application/vnd.ms-excel"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  var today = new Date();
+  var dateStr = today.getFullYear() + String(today.getMonth()+1).padStart(2,"0") + String(today.getDate()).padStart(2,"0");
+  a.href = url;
+  a.download = "外銷物料請購單_" + dateStr + ".xls";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+render();
+</script>
+</body>
+</html>
