@@ -94,7 +94,7 @@
     flex-wrap:wrap;
   }
   .nav-strip .sep{color:var(--accent);font-weight:700;}
-  .grid{display:grid;grid-template-columns:300px 1fr;gap:24px;}
+  .grid{display:grid;grid-template-columns:320px 1fr;gap:24px;}
   @media (max-width:780px){.grid{grid-template-columns:1fr;}}
   .panel{
     background:var(--panel);
@@ -112,88 +112,137 @@
     margin:0 0 16px;
   }
 
-  .spec-block{
-    border:1px solid var(--line);
-    border-radius:5px;
-    padding:14px;
-    margin-bottom:14px;
-    transition:border-color .15s, background .15s;
+  .batch-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:10px;
+    font-size:13px;
+    table-layout:fixed;
   }
-  .spec-block.on{border-color:var(--accent);background:rgba(227,0,27,0.05);}
-  .spec-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    cursor:pointer;
-    -webkit-user-select:none;
-    user-select:none;
+  .batch-table thead th{
+    text-align:right;
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:0 6px 6px;
+    border-bottom:1px solid var(--line);
   }
-  .spec-head .label{
-    display:flex;
-    align-items:center;
-    gap:10px;
+  .batch-table thead th.left{text-align:left;}
+  .batch-table tbody td{
+    padding:6px 3px;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
   }
-  .spec-head .num{
+  .batch-table tbody td.label-cell{
     font-family:'Barlow Condensed',sans-serif;
-    font-size:24px;
-    font-weight:700;
+    font-size:13px;
+    font-weight:600;
     color:var(--text);
+    white-space:nowrap;
+    display:flex;
+    align-items:center;
+    gap:5px;
   }
-  .spec-head .unit{font-size:12px;color:var(--text-dim);}
-  .switch{
-    width:38px;height:22px;
-    border-radius:11px;
+  .batch-row.off{opacity:0.4;}
+  .batch-row.off .batch-ton-input,
+  .batch-row.off .mini-step-btn{pointer-events:none;}
+  .batch-switch{
+    width:26px;height:15px;
+    border-radius:8px;
     background:var(--panel-2);
     border:1px solid var(--line);
     position:relative;
     flex-shrink:0;
+    cursor:pointer;
   }
-  .switch .knob{
+  .batch-switch .knob{
     position:absolute;
-    top:2px;left:2px;
-    width:16px;height:16px;
+    top:1px;left:1px;
+    width:11px;height:11px;
     border-radius:50%;
     background:var(--text-dim);
     transition:left .15s, background .15s;
   }
-  .spec-block.on .switch{border-color:var(--accent);background:var(--accent-dim);}
-  .spec-block.on .switch .knob{left:18px;background:#fff;}
-
-  .ton-area{
-    margin-top:14px;
-    opacity:1;
-    transition:opacity .15s;
+  .batch-switch.on{border-color:var(--accent);background:var(--accent-dim);}
+  .batch-switch.on .knob{left:12px;background:var(--accent);}
+  .ton-stepper{
+    display:flex;
+    align-items:stretch;
+    gap:4px;
   }
-  .spec-block:not(.on) .ton-area{opacity:0.35;pointer-events:none;}
-  .field-label{display:block;font-size:11px;color:var(--text-dim);margin-bottom:6px;}
-  .ton-input-row{display:flex;align-items:stretch;gap:6px;margin-bottom:8px;}
-  .step-btn{
-    width:34px;
+  .mini-step-btn{
+    width:22px;
     background:var(--panel-2);
     border:1px solid var(--line);
     border-radius:4px;
     color:var(--text);
-    font-size:17px;
+    font-size:14px;
     cursor:pointer;
     line-height:1;
+    flex-shrink:0;
   }
-  .step-btn:hover{border-color:var(--steel);}
-  .ton-input{
-    flex:1;
+  .mini-step-btn:hover{border-color:var(--steel);}
+  .batch-ton-input{
+    flex:0 0 auto;
+    width:38px;
     background:var(--panel-2);
     border:1px solid var(--line);
     border-radius:4px;
     color:var(--text);
     font-family:'Barlow Condensed',sans-serif;
-    font-size:19px;
+    font-size:15px;
     font-weight:600;
     text-align:center;
-    padding:6px 4px;
-    width:100%;
+    padding:5px 1px;
   }
-  .ton-input:focus{outline:none;border-color:var(--steel);}
-  .batch-note{font-size:11px;color:var(--text-faint);}
-  .batch-note b{color:var(--text-dim);font-weight:600;}
+  .batch-ton-input:focus{outline:none;border-color:var(--steel);}
+  .batch-ton-input::-webkit-outer-spin-button,
+  .batch-ton-input::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+  }
+  .batch-ton-input[type="number"]{
+    -moz-appearance:textfield;
+  }
+  .remove-batch-btn{
+    background:none;
+    border:none;
+    color:var(--text-faint);
+    font-size:15px;
+    cursor:pointer;
+    line-height:1;
+    padding:2px;
+  }
+  .remove-batch-btn:hover{color:var(--accent);}
+  .add-batch-btn{
+    width:100%;
+    background:#fff;
+    border:1px dashed var(--accent);
+    border-radius:4px;
+    color:var(--accent);
+    font-size:13px;
+    font-weight:600;
+    padding:8px;
+    cursor:pointer;
+    margin-bottom:14px;
+  }
+  .add-batch-btn:hover{background:rgba(227,0,27,0.05);}
+  .batch-total{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    font-size:13px;
+    color:var(--text-dim);
+    border-top:1px solid var(--line);
+    padding-top:10px;
+    margin-bottom:10px;
+  }
+  .batch-total b{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:17px;
+    color:var(--accent);
+  }
 
   .base-note{
     font-size:11px;
@@ -296,12 +345,21 @@
     color:var(--ok);
   }
   .rule-note{font-size:11px;color:var(--text-faint);text-align:left;}
+  .po-group-row{
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:flex-start;
+  }
   .po-setup{
     margin-top:8px;
     padding:8px;
     background:var(--panel-2);
     border:1px dashed var(--line);
     border-radius:4px;
+    flex:0 1 200px;
+    min-width:180px;
   }
   .po-row1{
     display:flex;
@@ -316,6 +374,16 @@
     font-family:'Inter',monospace;
     color:var(--text);
     font-weight:600;
+  }
+  .po-qty{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:1px 6px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    color:var(--accent);
+    font-size:12px;
   }
   .po-manual{
     width:80px;
@@ -342,6 +410,12 @@
     font-weight:700;
     color:var(--accent);
     font-size:13px;
+  }
+  .po-group-note{
+    font-size:10px;
+    color:var(--text-faint);
+    margin-top:6px;
+    margin-bottom:2px;
   }
   .rule-tag{
     display:inline-block;
@@ -405,45 +479,34 @@
   <div class="grid">
 
     <div class="panel">
-      <h2>選擇規格與噸數</h2>
+      <h2>批次請購清單</h2>
 
-      <div class="spec-block on" id="block10" data-diam="10">
-        <div class="spec-head" data-toggle="10">
-          <div class="label">
-            <span class="num">10</span><span class="unit">MM</span>
-          </div>
-          <div class="switch"><div class="knob"></div></div>
-        </div>
-        <div class="ton-area">
-          <label class="field-label">預定出貨噸數 (T)</label>
-          <div class="ton-input-row">
-            <button class="step-btn" data-step="-25" data-diam="10">&minus;</button>
-            <input type="number" class="ton-input" id="ton10" value="25" min="0" step="1">
-            <button class="step-btn" data-step="25" data-diam="10">&plus;</button>
-          </div>
-          <div class="batch-note">換算 <span id="batch10">1.00</span> 批 (&times;25T)</div>
-        </div>
+      <table class="batch-table">
+        <colgroup>
+          <col style="width:64px">
+          <col>
+          <col>
+          <col style="width:18px">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="left">批次</th>
+            <th>10MM(T)</th>
+            <th>15MM(T)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="batchTbody"></tbody>
+      </table>
+
+      <button class="add-batch-btn" id="addBatchBtn">&#43; 新增批次</button>
+
+      <div class="batch-total">
+        <div>10MM總噸數：<b id="totalTon10">0</b> T</div>
+        <div>15MM總噸數：<b id="totalTon15">0</b> T</div>
       </div>
 
-      <div class="spec-block" id="block15" data-diam="15">
-        <div class="spec-head" data-toggle="15">
-          <div class="label">
-            <span class="num">15</span><span class="unit">MM</span>
-          </div>
-          <div class="switch"><div class="knob"></div></div>
-        </div>
-        <div class="ton-area">
-          <label class="field-label">預定出貨噸數 (T)</label>
-          <div class="ton-input-row">
-            <button class="step-btn" data-step="-25" data-diam="15">&minus;</button>
-            <input type="number" class="ton-input" id="ton15" value="25" min="0" step="1">
-            <button class="step-btn" data-step="25" data-diam="15">&plus;</button>
-          </div>
-          <div class="batch-note">換算 <span id="batch15">1.00</span> 批 (&times;25T)</div>
-        </div>
-      </div>
-
-      <div class="base-note">兩種規格可同時開啟，各自輸入噸數；下方「合計請購量」會將兩規格需求加總後，再依採購規則（進位/最低量/倍數）計算最終數量。基準值：每 25T 為一計算單位。</div>
+      <div class="base-note">每個批次可分別輸入10MM、15MM出貨噸數（其中一項可留0）；下方「合計請購量」會將所有批次的噸數加總後，再依採購規則（進位/最低量/倍數）計算最終數量。基準值：每 25T 為一計算單位。</div>
     </div>
 
     <div class="panel">
@@ -460,7 +523,7 @@
       <div id="resultWrap"></div>
 
       <footer>
-        計算方式：各規格需求量 = 每 25T 基準用量 &times; (該規格噸數 &divide; 25)，將已開啟規格的需求量加總後，再依物料規則進位得出合計請購量；<b style="color:var(--ok)">需購買量 = (合計請購量 &minus; 庫存量) 再依該物料採購規則進位</b>，若扣除庫存後為0或負數則需購買量為0。<span class="rule-tag min">最低採購</span> 表示未達下限時以下限量計；<span class="rule-tag mult">整數倍</span> 表示須以指定倍數採購。未標示者為整數進位。關閉的規格不計入合計。庫存量請於「庫存量(手動)」欄位輸入，僅供本次瀏覽計算使用，不會保存。
+        計算方式：各規格需求量 = 每 25T 基準用量 &times; (該規格總噸數 &divide; 25)，將所有批次的噸數加總後，再依物料規則進位得出合計請購量；<b style="color:var(--ok)">需購買量 = (合計請購量 &minus; 庫存量) 再依該物料採購規則進位</b>，若扣除庫存後為0或負數則需購買量為0。<span class="rule-tag min">最低採購</span> 表示未達下限時以下限量計；<span class="rule-tag mult">整數倍</span> 表示須以指定倍數採購。未標示者為整數進位。庫存量請於「庫存量(手動)」欄位輸入，僅供本次瀏覽計算使用，不會保存。
       </footer>
     </div>
 
@@ -481,22 +544,24 @@ var ITEMS = [
   ["二色強銅上光貼紙(15MM)","330004",      "15MM 40*70MM",                  null, 5610,"round",   "PC"],
   ["二色強銅上光貼紙(2311)","10330001",    "80*190MM",                      38,   null,"round",   "PC"],
   ["二色強銅上光貼紙(2319)","10330002",    "80*190MM",                      null, 38,  "round",   "PC"],
-  ["吊卡(10MM)",           "34300125",     "66*47MM",                       435,  null,"round",   "PC", "", false, "tag10"],
-  ["吊卡(15MM)",           "34300126",     "66*47MM",                       null, 540, "round",   "PC", "", false, "tag15"],
+  ["吊卡(10MM)",           "34300125",     "66*47MM",                       435,  null,"round",   "PC", "", false, "po10"],
+  ["吊卡(15MM)",           "34300126",     "66*47MM",                       null, 540, "round",   "PC", "", false, "po15"],
   ["紙板3PB",              "30121013",     "1700*1300",                     38,   38,  "round",   "PC"],
   ["自動噴漆(銀色)",       "12105038",     "124#",                          5,    5,   "mult6",   "CA"],
   ["自動噴漆(透明色)",     "12105039",     "128#",                          5,    5,   "mult6",   "CA"],
   ["透明膠帶",             "16086042",     "2\"X45M",                       17,   17,  "mult6",   "PC"]
 ];
 var BASE_TON = 25;
+function newPoState(){ return { manual: "", date: "" }; }
+function newBatch(ton10, ton15){
+  return { enabled: true, ton10: ton10, ton15: ton15, po10: newPoState(), po15: newPoState() };
+}
 var state = {
-  on10: true, on15: false,
-  ton10: 25, ton15: 25,
-  stock: {},
-  po: {
-    tag10: { manual: "", date: "" },
-    tag15: { manual: "", date: "" }
-  }
+  batches: [
+    newBatch(25, 25),
+    newBatch(25, 25)
+  ],
+  stock: {}
 };
 var lastRowsData = [];
 
@@ -526,17 +591,32 @@ function todayStr(){
   return d.getFullYear() + "-" + mm + "-" + dd;
 }
 
-function poSetupHtml(key){
-  var poState = state.po[key];
+function poSetupHtml(batchIdx, specField, label, qty, unit){
+  var poState = state.batches[batchIdx][specField];
   if(!poState.date) poState.date = todayStr();
-  return '<div class="po-setup" data-pokey="' + key + '">' +
-    '<div class="po-row1">PO碼設定：<span class="po-fixed">PO240</span>' +
-    '<input type="text" class="po-manual" data-pokey="' + key + '" maxlength="6" placeholder="業務提供5碼" value="' + poState.manual + '">' +
-    '<input type="date" class="po-date" data-pokey="' + key + '" value="' + poState.date + '">' +
+  var dataAttr = 'data-batchidx="' + batchIdx + '" data-specfield="' + specField + '"';
+  return '<div class="po-setup" ' + dataAttr + '>' +
+    '<div class="po-row1">' + label + '<span class="po-qty">需求 ' + qty.toLocaleString() + ' ' + unit + '</span> PO碼：<span class="po-fixed">PO240</span>' +
+    '<input type="text" class="po-manual" ' + dataAttr + ' maxlength="6" placeholder="業務提供5碼" value="' + poState.manual + '">' +
+    '<input type="date" class="po-date" ' + dataAttr + ' value="' + poState.date + '">' +
     '</div>' +
-    '<div class="po-row2">預覽：<span class="po-preview" data-pokey="' + key + '">' + poPreview(poState) + '</span>' +
-    '　(年碼A對應西元2005年，每年遞增1碼，26年一循環；月碼A~L對應1~12月)</div>' +
+    '<div class="po-row2">預覽：<span class="po-preview" ' + dataAttr + '>' + poPreview(poState) + '</span></div>' +
     '</div>';
+}
+
+function poSetupGroupHtml(specField, baseValue, unit){
+  var html = "";
+  var tonField = specField === "po10" ? "ton10" : "ton15";
+  state.batches.forEach(function(b, idx){
+    var ton = b[tonField] || 0;
+    if(b.enabled && ton > 0){
+      var qty = Math.ceil(baseValue * (ton / BASE_TON));
+      html += poSetupHtml(idx, specField, "批" + (idx + 1), qty, unit);
+    }
+  });
+  if(!html) return "";
+  return '<div class="po-group-note">年碼A對應西元2005年，每年遞增1碼，26年一循環；月碼A~L對應1~12月</div>' +
+    '<div class="po-group-row">' + html + '</div>';
 }
 
 function applyRule(raw, rule){
@@ -562,11 +642,85 @@ function ruleTag(rule){
 
 function fmtRound(n){ return Math.ceil(n).toLocaleString(); }
 
-function render(){
-  document.getElementById("block10").classList.toggle("on", state.on10);
-  document.getElementById("block15").classList.toggle("on", state.on15);
-  document.getElementById("batch10").textContent = (state.ton10 / BASE_TON).toFixed(2);
-  document.getElementById("batch15").textContent = (state.ton15 / BASE_TON).toFixed(2);
+function renderBatchTable(){
+  var tbody = document.getElementById("batchTbody");
+  var rowsHtml = "";
+  state.batches.forEach(function(b, idx){
+    var offClass = b.enabled ? "" : " off";
+    rowsHtml += '<tr data-idx="' + idx + '" class="batch-row' + offClass + '">' +
+      '<td class="label-cell">' +
+        '<div class="batch-switch' + (b.enabled ? ' on' : '') + '" data-idx="' + idx + '"><div class="knob"></div></div>' +
+        '批' + (idx + 1) +
+      '</td>' +
+      '<td>' +
+        '<div class="ton-stepper">' +
+          '<button class="mini-step-btn" data-idx="' + idx + '" data-field="ton10" data-step="-25">&minus;</button>' +
+          '<input type="number" class="batch-ton-input" data-idx="' + idx + '" data-field="ton10" min="0" value="' + b.ton10 + '">' +
+          '<button class="mini-step-btn" data-idx="' + idx + '" data-field="ton10" data-step="25">&plus;</button>' +
+        '</div>' +
+      '</td>' +
+      '<td>' +
+        '<div class="ton-stepper">' +
+          '<button class="mini-step-btn" data-idx="' + idx + '" data-field="ton15" data-step="-25">&minus;</button>' +
+          '<input type="number" class="batch-ton-input" data-idx="' + idx + '" data-field="ton15" min="0" value="' + b.ton15 + '">' +
+          '<button class="mini-step-btn" data-idx="' + idx + '" data-field="ton15" data-step="25">&plus;</button>' +
+        '</div>' +
+      '</td>' +
+      '<td>' + (state.batches.length > 1 ? '<button class="remove-batch-btn" data-idx="' + idx + '">&times;</button>' : '') + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = rowsHtml;
+
+  tbody.querySelectorAll(".batch-switch").forEach(function(sw){
+    sw.addEventListener("click", function(){
+      var idx = parseInt(sw.getAttribute("data-idx"), 10);
+      state.batches[idx].enabled = !state.batches[idx].enabled;
+      renderBatchTable();
+      computeAndRenderResults();
+    });
+  });
+  tbody.querySelectorAll(".batch-ton-input").forEach(function(inp){
+    inp.addEventListener("input", function(){
+      var idx = parseInt(inp.getAttribute("data-idx"), 10);
+      var field = inp.getAttribute("data-field");
+      var v = parseFloat(inp.value);
+      if(isNaN(v) || v < 0) v = 0;
+      state.batches[idx][field] = v;
+      computeAndRenderResults();
+    });
+  });
+  tbody.querySelectorAll(".mini-step-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var idx = parseInt(btn.getAttribute("data-idx"), 10);
+      var field = btn.getAttribute("data-field");
+      var step = parseFloat(btn.getAttribute("data-step"));
+      state.batches[idx][field] = Math.max(0, (state.batches[idx][field] || 0) + step);
+      renderBatchTable();
+      computeAndRenderResults();
+    });
+  });
+  tbody.querySelectorAll(".remove-batch-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var idx = parseInt(btn.getAttribute("data-idx"), 10);
+      state.batches.splice(idx, 1);
+      renderBatchTable();
+      computeAndRenderResults();
+    });
+  });
+}
+
+function computeAndRenderResults(){
+  var ton10 = state.batches.reduce(function(sum, b){ return sum + (b.enabled ? (b.ton10 || 0) : 0); }, 0);
+  var ton15 = state.batches.reduce(function(sum, b){ return sum + (b.enabled ? (b.ton15 || 0) : 0); }, 0);
+  var on10 = ton10 > 0;
+  var on15 = ton15 > 0;
+  state.ton10 = ton10;
+  state.ton15 = ton15;
+  state.on10 = on10;
+  state.on15 = on15;
+
+  document.getElementById("totalTon10").textContent = ton10.toLocaleString();
+  document.getElementById("totalTon15").textContent = ton15.toLocaleString();
 
   var summaryParts = [];
   if(state.on10) summaryParts.push("10MM " + state.ton10 + "T");
@@ -576,7 +730,7 @@ function render(){
   var today = new Date();
   var dateStr = today.getFullYear() + "/" + String(today.getMonth()+1).padStart(2,"0") + "/" + String(today.getDate()).padStart(2,"0");
   document.getElementById("printMeta").innerHTML =
-    "<b>外銷鋼筋物料請購單</b>　規格條件：" + (summaryParts.join("　+　") || "未選擇") + "　製表日期：" + dateStr;
+    "<b>外銷鋼筋物料請購單</b>　規格條件：" + (summaryParts.join("　+　") || "未選擇") + "　批次數：" + state.batches.length + "　製表日期：" + dateStr;
 
   var wrap = document.getElementById("resultWrap");
 
@@ -664,7 +818,7 @@ function render(){
       '<td class="total-qty">' + totalCell + '</td>' +
       '<td class="stock-cell">' + stockCell + '</td>' +
       '<td class="total-qty buy-qty-cell">' + buyCell + '</td>' +
-      '<td class="rule-note">' + (showsAny ? ((linkPallet ? '' : ruleTag(rule)) + (extraNote ? (linkPallet ? '' : '<br>') + extraNote : '') + (poKey ? poSetupHtml(poKey) : '')) : '本規格不適用') + '</td>' +
+      '<td class="rule-note">' + (showsAny ? ((linkPallet ? '' : ruleTag(rule)) + (extraNote ? (linkPallet ? '' : '<br>') + extraNote : '') + (poKey ? poSetupGroupHtml(poKey, poKey === "po10" ? base10 : base15, unit) : '')) : '本規格不適用') + '</td>' +
       '</tr>';
 
     if(showsAny){
@@ -712,51 +866,24 @@ function render(){
 
   wrap.querySelectorAll(".po-manual, .po-date").forEach(function(inp){
     inp.addEventListener("input", function(){
-      var key = inp.getAttribute("data-pokey");
+      var batchIdx = parseInt(inp.getAttribute("data-batchidx"), 10);
+      var specField = inp.getAttribute("data-specfield");
       var setupDiv = inp.closest(".po-setup");
       var manualInput = setupDiv.querySelector(".po-manual");
       var dateInput = setupDiv.querySelector(".po-date");
-      state.po[key].manual = manualInput.value;
-      state.po[key].date = dateInput.value;
+      var poState = state.batches[batchIdx][specField];
+      poState.manual = manualInput.value;
+      poState.date = dateInput.value;
       var previewSpan = setupDiv.querySelector(".po-preview");
-      previewSpan.textContent = poPreview(state.po[key]);
+      previewSpan.textContent = poPreview(poState);
     });
   });
 }
 
-document.querySelectorAll("[data-toggle]").forEach(function(el){
-  el.addEventListener("click", function(){
-    var d = el.getAttribute("data-toggle");
-    if(d === "10") state.on10 = !state.on10;
-    if(d === "15") state.on15 = !state.on15;
-    render();
-  });
-});
-
-document.getElementById("ton10").addEventListener("input", function(e){
-  var v = parseFloat(e.target.value);
-  state.ton10 = isNaN(v) || v < 0 ? 0 : v;
-  render();
-});
-document.getElementById("ton15").addEventListener("input", function(e){
-  var v = parseFloat(e.target.value);
-  state.ton15 = isNaN(v) || v < 0 ? 0 : v;
-  render();
-});
-
-document.querySelectorAll(".step-btn").forEach(function(btn){
-  btn.addEventListener("click", function(){
-    var diam = btn.getAttribute("data-diam");
-    var step = parseFloat(btn.getAttribute("data-step"));
-    if(diam === "10"){
-      state.ton10 = Math.max(0, state.ton10 + step);
-      document.getElementById("ton10").value = state.ton10;
-    } else {
-      state.ton15 = Math.max(0, state.ton15 + step);
-      document.getElementById("ton15").value = state.ton15;
-    }
-    render();
-  });
+document.getElementById("addBatchBtn").addEventListener("click", function(){
+  state.batches.push(newBatch(25, 0));
+  renderBatchTable();
+  computeAndRenderResults();
 });
 
 document.getElementById("printBtn").addEventListener("click", function(){
@@ -806,7 +933,8 @@ document.getElementById("csvBtn").addEventListener("click", function(){
   URL.revokeObjectURL(url);
 });
 
-render();
+renderBatchTable();
+computeAndRenderResults();
 </script>
 </body>
 </html>
