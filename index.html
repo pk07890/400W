@@ -251,6 +251,86 @@
     margin-top:4px;
   }
 
+  .history-section{
+    border-top:1px solid var(--line);
+    margin-top:16px;
+    padding-top:14px;
+  }
+  .history-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .history-head h2{margin:0;}
+  .save-history-btn{
+    background:var(--steel);
+    border:1px solid var(--steel);
+    border-radius:4px;
+    color:#fff;
+    font-size:12px;
+    font-weight:600;
+    padding:7px 12px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .save-history-btn:hover{background:#000;}
+  .history-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .history-empty{
+    font-size:12px;
+    color:var(--text-faint);
+    padding:10px 0;
+  }
+  .history-item{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:8px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    background:var(--panel-2);
+  }
+  .history-item-info{flex:1;min-width:0;}
+  .history-item-label{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    color:var(--text);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .history-item-meta{
+    font-size:11px;
+    color:var(--text-faint);
+    margin-top:2px;
+  }
+  .history-item-btns{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+  }
+  .history-load-btn, .history-del-btn{
+    border-radius:4px;
+    font-size:12px;
+    font-weight:600;
+    padding:5px 10px;
+    cursor:pointer;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--text);
+  }
+  .history-load-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .history-del-btn{color:var(--text-faint);}
+  .history-del-btn:hover{border-color:var(--accent);color:var(--accent);}
+
   .result-head{
     display:flex;
     align-items:baseline;
@@ -306,6 +386,14 @@
   tbody td.left{text-align:left;}
   tbody tr:last-child td{border-bottom:none;}
   tbody tr:hover{background:var(--panel-2);}
+  .item-no{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    color:var(--text-dim);
+    text-align:center !important;
+    width:36px;
+  }
   .item-name{font-weight:500;color:var(--text);}
   .item-spec{font-size:11px;color:var(--text-faint);margin-top:2px;}
   .part-no{font-family:'Inter',monospace;font-size:11px;color:var(--text-dim);}
@@ -507,6 +595,15 @@
       </div>
 
       <div class="base-note">每個批次可分別輸入10MM、15MM出貨噸數（其中一項可留0）；下方「合計請購量」會將所有批次的噸數加總後，再依採購規則（進位/最低量/倍數）計算最終數量。基準值：每 25T 為一計算單位。</div>
+
+      <div class="history-section">
+        <div class="history-head">
+          <h2>歷史請購記錄</h2>
+          <button class="save-history-btn" id="saveHistoryBtn">&#128190; 儲存本次請購</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+        <div class="base-note">請購完成後按上方按鈕存檔，下次可從清單中點「載入」重新帶入相同的批次與庫存設定（僅保存在本機瀏覽器中）。</div>
+      </div>
     </div>
 
     <div class="panel">
@@ -746,6 +843,7 @@ function computeAndRenderResults(){
   var palletRaw15 = 0;
   var angleSplit10 = 0;
   var angleSplit15 = 0;
+  var itemCounter = 0;
   ITEMS.forEach(function(it){
     var name = it[0], partNo = it[1], spec = it[2], base10 = it[3], base15 = it[4], rule = it[5], unit = it[6], extraNote = it[7] || "", linkPallet = it[8] || false, poKey = it[9] || null;
 
@@ -811,19 +909,20 @@ function computeAndRenderResults(){
       buyCell = '<span class="buy-qty">' + buyQty.toLocaleString() + '</span><span class="u">' + unit + '</span>';
     }
 
-    rowsHtml += '<tr data-name="' + name + '" data-final="' + finalQty + '" data-unit="' + unit + '" data-rule="' + rule + '" data-linkpallet="' + (linkPallet ? "1" : "0") + '">' +
-      '<td class="left"><div class="item-name">' + name + '</div><div class="item-spec">' + spec + '</div><div class="part-no">' + partNo + '</div></td>' +
-      '<td class="sub-qty">' + sub10 + '</td>' +
-      '<td class="sub-qty">' + sub15 + '</td>' +
-      '<td class="total-qty">' + totalCell + '</td>' +
-      '<td class="stock-cell">' + stockCell + '</td>' +
-      '<td class="total-qty buy-qty-cell">' + buyCell + '</td>' +
-      '<td class="rule-note">' + (showsAny ? ((linkPallet ? '' : ruleTag(rule)) + (extraNote ? (linkPallet ? '' : '<br>') + extraNote : '') + (poKey ? poSetupGroupHtml(poKey, poKey === "po10" ? base10 : base15, unit) : '')) : '本規格不適用') + '</td>' +
-      '</tr>';
-
     if(showsAny){
+      rowsHtml += '<tr data-name="' + name + '" data-final="' + finalQty + '" data-unit="' + unit + '" data-rule="' + rule + '" data-linkpallet="' + (linkPallet ? "1" : "0") + '">' +
+        '<td class="left item-no">' + (++itemCounter) + '</td>' +
+        '<td class="left"><div class="item-name">' + name + '</div><div class="item-spec">' + spec + '</div><div class="part-no">' + partNo + '</div></td>' +
+        '<td class="sub-qty">' + sub10 + '</td>' +
+        '<td class="sub-qty">' + sub15 + '</td>' +
+        '<td class="total-qty">' + totalCell + '</td>' +
+        '<td class="stock-cell">' + stockCell + '</td>' +
+        '<td class="total-qty buy-qty-cell">' + buyCell + '</td>' +
+        '<td class="rule-note">' + ((linkPallet ? '' : ruleTag(rule)) + (extraNote ? (linkPallet ? '' : '<br>') + extraNote : '') + (poKey ? poSetupGroupHtml(poKey, poKey === "po10" ? base10 : base15, unit) : '')) + '</td>' +
+        '</tr>';
+
       lastRowsData.push({
-        name: name, partNo: partNo, spec: spec, unit: unit,
+        itemNo: itemCounter, name: name, partNo: partNo, spec: spec, unit: unit,
         need10: need10, need15: need15,
         total: finalQty,
         stock: stockVal,
@@ -835,6 +934,7 @@ function computeAndRenderResults(){
   wrap.innerHTML =
     '<table>' +
     '<thead><tr>' +
+      '<th class="left">項次</th>' +
       '<th class="left">物料 / 規格 / 新料號</th>' +
       '<th>10MM 需求</th>' +
       '<th>15MM 需求</th>' +
@@ -891,7 +991,7 @@ document.getElementById("printBtn").addEventListener("click", function(){
 });
 
 document.getElementById("csvBtn").addEventListener("click", function(){
-  var headerLabels = ["物料","新料號","規格","單位","10MM需求","15MM需求","合計請購量","庫存量","需購買量"];
+  var headerLabels = ["項次","物料","新料號","規格","單位","10MM需求","15MM需求","合計請購量","庫存量","需購買量"];
   var headerHtml = "<tr>" + headerLabels.map(function(h){
     return '<th style="background:#BDD7EE;border:1px solid #000000;font-weight:bold;padding:4px 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt;text-align:left;">' + h + '</th>';
   }).join("") + "</tr>";
@@ -901,6 +1001,7 @@ document.getElementById("csvBtn").addEventListener("click", function(){
     var need15Txt = row.need15 !== null ? Math.round(row.need15) : "";
     var tdBase = 'border:1px solid #000000;padding:3px 6px;font-family:Calibri,Arial,sans-serif;font-size:11pt;';
     return "<tr>" +
+      '<td style="' + tdBase + 'text-align:center;">' + row.itemNo + "</td>" +
       '<td style="' + tdBase + 'color:#1F4E78;font-weight:bold;">' + row.name + "</td>" +
       '<td style="' + tdBase + 'color:#1F4E78;">' + row.partNo + "</td>" +
       '<td style="' + tdBase + '">' + row.spec + "</td>" +
@@ -933,8 +1034,131 @@ document.getElementById("csvBtn").addEventListener("click", function(){
   URL.revokeObjectURL(url);
 });
 
+var HISTORY_KEY = "twSteelReqHistory_v1";
+
+function loadHistory(){
+  try{
+    var raw = localStorage.getItem(HISTORY_KEY);
+    if(!raw) return [];
+    var parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveHistoryList(list){
+  try{
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  }catch(e){
+    alert("儲存失敗，可能是瀏覽器儲存空間已滿或不支援本機儲存。");
+  }
+}
+
+function historyDateStr(d){
+  return d.getFullYear() + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + String(d.getDate()).padStart(2,"0") +
+    " " + String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+
+function renderHistoryList(){
+  var container = document.getElementById("historyList");
+  var list = loadHistory();
+  if(!list.length){
+    container.innerHTML = '<div class="history-empty">尚無歷史請購記錄</div>';
+    return;
+  }
+  container.innerHTML = list.map(function(rec, idx){
+    var parts = [];
+    if(rec.on10) parts.push("10MM " + rec.ton10 + "T");
+    if(rec.on15) parts.push("15MM " + rec.ton15 + "T");
+    var specTxt = parts.length ? parts.join(" + ") : "未選規格";
+    return '<div class="history-item" data-idx="' + idx + '">' +
+      '<div class="history-item-info">' +
+        '<div class="history-item-label">' + (rec.label || ("請購 " + (idx+1))) + '</div>' +
+        '<div class="history-item-meta">' + rec.savedAtText + '　' + specTxt + '　批次數：' + (rec.batches ? rec.batches.length : 0) + '</div>' +
+      '</div>' +
+      '<div class="history-item-btns">' +
+        '<button class="history-load-btn" data-idx="' + idx + '">載入</button>' +
+        '<button class="history-del-btn" data-idx="' + idx + '">刪除</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+
+  container.querySelectorAll(".history-load-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var idx = parseInt(btn.getAttribute("data-idx"), 10);
+      var list = loadHistory();
+      var rec = list[idx];
+      if(!rec) return;
+      if(!confirm("載入「" + (rec.label || "此筆記錄") + "」將覆蓋目前畫面上的批次與庫存設定，確定要載入嗎？")) return;
+      state.batches = (rec.batches || []).map(function(b){
+        return {
+          enabled: b.enabled !== false,
+          ton10: b.ton10 || 0,
+          ton15: b.ton15 || 0,
+          po10: { manual: (b.po10 && b.po10.manual) || "", date: (b.po10 && b.po10.date) || "" },
+          po15: { manual: (b.po15 && b.po15.manual) || "", date: (b.po15 && b.po15.date) || "" }
+        };
+      });
+      if(!state.batches.length) state.batches = [newBatch(25, 0)];
+      state.stock = rec.stock || {};
+      renderBatchTable();
+      computeAndRenderResults();
+    });
+  });
+
+  container.querySelectorAll(".history-del-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var idx = parseInt(btn.getAttribute("data-idx"), 10);
+      var list = loadHistory();
+      var rec = list[idx];
+      if(!rec) return;
+      if(!confirm("確定要刪除「" + (rec.label || "此筆記錄") + "」嗎？此動作無法復原。")) return;
+      list.splice(idx, 1);
+      saveHistoryList(list);
+      renderHistoryList();
+    });
+  });
+}
+
+document.getElementById("saveHistoryBtn").addEventListener("click", function(){
+  var now = new Date();
+  var defaultLabel = "請購 " + historyDateStr(now);
+  var label = prompt("請輸入本次請購記錄名稱（可留空使用預設名稱）：", defaultLabel);
+  if(label === null) return;
+  label = label.trim() || defaultLabel;
+
+  var record = {
+    label: label,
+    savedAt: now.getTime(),
+    savedAtText: historyDateStr(now),
+    on10: !!state.on10,
+    on15: !!state.on15,
+    ton10: state.ton10 || 0,
+    ton15: state.ton15 || 0,
+    batches: state.batches.map(function(b){
+      return {
+        enabled: b.enabled,
+        ton10: b.ton10 || 0,
+        ton15: b.ton15 || 0,
+        po10: { manual: b.po10.manual || "", date: b.po10.date || "" },
+        po15: { manual: b.po15.manual || "", date: b.po15.date || "" }
+      };
+    }),
+    stock: Object.assign({}, state.stock)
+  };
+
+  var list = loadHistory();
+  list.unshift(record);
+  if(list.length > 30) list = list.slice(0, 30);
+  saveHistoryList(list);
+  renderHistoryList();
+  alert("已儲存本次請購記錄：" + label);
+});
+
 renderBatchTable();
 computeAndRenderResults();
+renderHistoryList();
 </script>
 </body>
 </html>
