@@ -656,12 +656,17 @@
     <label>開單指令（複製後貼給 Claude 開單專用對話）</label>
     <div class="req-cmd" id="reqCmd"></div>
     <div class="req-btns">
-      <button class="action-btn primary" id="reqCopyBtn">&#128203; 複製開單指令</button>
+      <button class="action-btn primary" id="reqAutoBtn">&#9889; 自動開立請購單</button>
+      <button class="action-btn" id="reqCopyBtn">&#128203; 複製開單指令</button>
       <button class="action-btn" id="reqOpenBtn">&#128279; 打開物料管理系統</button>
       <button class="action-btn" id="reqXlsBtn">&#8681; 下載明細（外銷鋼筋請購）</button>
       <button class="action-btn" id="reqCloseBtn">關閉</button>
     </div>
-    <div class="req-tip">Claude 會先列出料號、品名、數量給你確認，回「確認」才送出；開好後備存寫進桌面「外銷鋼筋請購.xlsx」。數量已換成物料系統的單位（例：束帶 100 條＝1 包）。</div>
+    <div class="req-tip">
+      <b>⚡ 自動開立請購單：</b>按下後會打開物料管理系統（請購資料跟著帶過去），在那一頁按我的最愛列上的「⚡ 自動開立」書籤，就會自動新增、填好每一項並送出，最後顯示需求單號並下載備存「外銷鋼筋請購_單號.xls」。料號找不到或單位對不上時不會送出；同一份資料不會重複開單。<br>
+      <b>第一次使用：</b>把這個 <a id="reqBookmarklet" style="display:inline-block;padding:2px 10px;border:1px dashed var(--accent);border-radius:4px;color:var(--accent);font-weight:700;text-decoration:none;cursor:move" title="拖到 Edge 我的最愛列" href="#">⚡ 自動開立</a> 拖到 Edge 的我的最愛列（沒看到我的最愛列：按 Ctrl+Shift+B）。<br>
+      <b>複製開單指令：</b>改用 Claude 開單專用對話開單（會先列出來給你確認），備存寫進桌面「外銷鋼筋請購.xlsx」。數量已換成物料系統的單位（例：束帶 100 條＝1 包）。
+    </div>
   </div>
 </div>
 
@@ -676,7 +681,7 @@ var ITEMS = [
   ["乾燥包(15G)",          "12630001",     "15克",                          143,  143, "mult200", "PC"],
   ["乾燥包(1000G)",        "12630003",     "1000克(包)",                    8,    8,   "round",   "PC"],
   ["二色強銅上光貼紙(10MM)","10330003",    "10MM 40*50MM",                  11220,null,"round",   "PC"],
-  ["二色強銅上光貼紙(15MM)","330004",      "15MM 40*70MM",                  null, 5610,"round",   "PC"],
+  ["二色強銅上光貼紙(15MM)","10330004",    "15MM 40*70MM",                  null, 5610,"round",   "PC"],
   ["二色強銅上光貼紙(2311)","10330001",    "80*190MM",                      38,   null,"round",   "PC"],
   ["二色強銅上光貼紙(2319)","10330002",    "80*190MM",                      null, 38,  "round",   "PC"],
   ["吊卡(10MM)",           "34300125",     "66*47MM",                       435,  null,"round",   "PC", "", false, "po10"],
@@ -1203,7 +1208,9 @@ var ORDER_UNIT = {
   "10258148":     { unit: "包", per: 100 },   // 束帶：100 條＝1 包
   "16086033":     { unit: "捲", per: 1 },     // PE布：系統單位 RL(捲)
   "U51177191300": { unit: "捲", per: 1 },     // 塑鋼帶：743M/捲
-  "12630003":     { unit: "包", per: 1 }      // 乾燥包1000G：系統單位 BX(包)
+  "12630003":     { unit: "包", per: 1 },     // 乾燥包1000G：系統單位 BX(包)
+  "12630001":     { unit: "包", per: 1 }      // 乾燥包15G：系統單位 BX(包)
+  // 其他品項本頁單位 PC／CA 就是物料系統的單位代碼（PC＝只、CA＝罐），不用換
 };
 
 function reqDateStr(sep){
@@ -1261,6 +1268,23 @@ document.getElementById("reqRemark").addEventListener("input", reqRefreshCmd);
 document.getElementById("reqCloseBtn").addEventListener("click", function(){ document.getElementById("reqMask").classList.remove("show"); });
 document.getElementById("reqMask").addEventListener("click", function(e){ if(e.target.id === "reqMask") e.target.classList.remove("show"); });
 document.getElementById("reqOpenBtn").addEventListener("click", function(){ window.open(MMU_URL, "_blank"); });
+// ⚡ 自動開單：請購資料放在網址 #tw400w=…，物料管理系統那頁按「⚡ 自動開立」書籤（載入 autofill.js）就自動填好送出
+document.getElementById("reqAutoBtn").addEventListener("click", function(){
+  var payload = {
+    v: 1,
+    remark: document.getElementById("reqRemark").value.trim(),
+    date: reqDateStr("/"),
+    items: reqCurrent.map(function(l){ return { no: l.partNo, name: l.name, qty: l.qty, unit: l.unit }; })
+  };
+  window.open(MMU_URL + "#tw400w=" + encodeURIComponent(JSON.stringify(payload)), "_blank");
+});
+// 書籤小工具：在物料管理系統頁面載入 GitHub 上的 autofill.js（加時間參數避免讀到舊版快取）
+document.getElementById("reqBookmarklet").href =
+  "javascript:(function(){var s=document.createElement('script');s.src='https://pk07890.github.io/400W/autofill.js?t='+Date.now();document.body.appendChild(s);})();";
+document.getElementById("reqBookmarklet").addEventListener("click", function(e){
+  e.preventDefault();
+  alert("這是書籤小工具：請把它「拖」到 Edge 的我的最愛列，之後在物料管理系統頁面按它。");
+});
 document.getElementById("reqCopyBtn").addEventListener("click", function(){
   var text = document.getElementById("reqCmd").textContent;
   var btn = this;
