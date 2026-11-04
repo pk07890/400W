@@ -663,8 +663,8 @@
       <button class="action-btn" id="reqCloseBtn">關閉</button>
     </div>
     <div class="req-tip">
-      <b>⚡ 自動開立請購單：</b>按下後會打開物料管理系統（請購資料跟著帶過去），在那一頁按我的最愛列上的「⚡ 自動開立」書籤，就會自動新增、填好每一項並送出，最後顯示需求單號並下載備存「外銷鋼筋請購_單號.xls」。料號找不到或單位對不上時不會送出；同一份資料不會重複開單。<br>
-      <b>第一次使用：</b>把這個 <a id="reqBookmarklet" style="display:inline-block;padding:2px 10px;border:1px dashed var(--accent);border-radius:4px;color:var(--accent);font-weight:700;text-decoration:none;cursor:move" title="拖到 Edge 我的最愛列" href="#">⚡ 自動開立</a> 拖到 Edge 的我的最愛列（沒看到我的最愛列：按 Ctrl+Shift+B）。<br>
+      <b>⚡ 自動開立請購單：</b>按下後請購資料會複製到剪貼簿並打開物料管理系統；在物料管理系統（任何一頁都可以）按我的最愛列上的「⚡ 自動開立」書籤，就會自動打開需求單、填好每一項並送出，最後顯示需求單號並下載備存「外銷鋼筋請購_單號.xls」。第一次 Edge 會問「允許查看剪貼簿」，請按允許。料號找不到或單位對不上時不會送出；同一份資料不會重複開單。<br>
+      <b>第一次使用（建書籤）：</b>把這個 <a id="reqBookmarklet" style="display:inline-block;padding:2px 10px;border:1px dashed var(--accent);border-radius:4px;color:var(--accent);font-weight:700;text-decoration:none;cursor:move" title="拖到 Edge 我的最愛列" href="#">⚡ 自動開立</a> 拖到我的最愛列；拖不上去的話按 <button type="button" id="reqBmCopyBtn" style="border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:4px;font-size:11px;padding:1px 8px;cursor:pointer">複製書籤網址</button>，再到 Edge 我的最愛列按右鍵「新增網頁」→ 名稱打「⚡ 自動開立」、網址貼上 → 儲存。<br>
       <b>複製開單指令：</b>改用 Claude 開單專用對話開單（會先列出來給你確認），備存寫進桌面「外銷鋼筋請購.xlsx」。數量已換成物料系統的單位（例：束帶 100 條＝1 包）。
     </div>
   </div>
@@ -1276,11 +1276,22 @@ document.getElementById("reqAutoBtn").addEventListener("click", function(){
     date: reqDateStr("/"),
     items: reqCurrent.map(function(l){ return { no: l.partNo, name: l.name, qty: l.qty, unit: l.unit }; })
   };
-  window.open(MMU_URL + "#tw400w=" + encodeURIComponent(JSON.stringify(payload)), "_blank");
+  var json = JSON.stringify(payload);
+  // 物料系統從這裡跳過去常被轉回首頁、網址後面的資料會掉，所以同時放進剪貼簿（書籤從剪貼簿讀）
+  var text = "TW400W:" + json;
+  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).catch(function(){ fallbackCopy(text); }); }
+  else { fallbackCopy(text); }
+  window.open(MMU_URL + "#tw400w=" + encodeURIComponent(json), "_blank");
 });
 // 書籤小工具：在物料管理系統頁面載入 GitHub 上的 autofill.js（加時間參數避免讀到舊版快取）
-document.getElementById("reqBookmarklet").href =
-  "javascript:(function(){var s=document.createElement('script');s.src='https://pk07890.github.io/400W/autofill.js?t='+Date.now();document.body.appendChild(s);})();";
+var REQ_BOOKMARKLET = "javascript:(function(){var s=document.createElement('script');s.src='https://pk07890.github.io/400W/autofill.js?t='+Date.now();document.body.appendChild(s);})();";
+document.getElementById("reqBookmarklet").href = REQ_BOOKMARKLET;
+document.getElementById("reqBmCopyBtn").addEventListener("click", function(){
+  var b = this;
+  function done(){ b.textContent = "已複製 ✓"; setTimeout(function(){ b.textContent = "複製書籤網址"; }, 2000); }
+  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(REQ_BOOKMARKLET).then(done, function(){ fallbackCopy(REQ_BOOKMARKLET); done(); }); }
+  else { fallbackCopy(REQ_BOOKMARKLET); done(); }
+});
 document.getElementById("reqBookmarklet").addEventListener("click", function(e){
   e.preventDefault();
   alert("這是書籤小工具：請把它「拖」到 Edge 的我的最愛列，之後在物料管理系統頁面按它。");
